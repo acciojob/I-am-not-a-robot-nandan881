@@ -1,65 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Captcha Verification</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Verification</title>
+  <style>
+    .img1, .img2, .img3, .img4, .img5 {
+      width: 100px;
+      height: 100px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    #reset, #verify {
+      display: none;
+    }
+    #para {
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-    <h3 id="h">Please click on the identical tiles to verify that you are not a robot.</h3>
-    <div class="grid" id="image-container"></div>
-    <button id="reset" style="display: none;" onclick="resetCaptcha()">Reset</button>
-    <button id="verify" style="display: none;" onclick="verifySelection()">Verify</button>
-    <p id="para"></p>
-    <script>
-        const images = ["img1", "img2", "img3", "img4", "img5"];
-        let shuffledImages = [];
-        let selected = [];
+  <h3 id="h">Please click on the identical tiles to verify that you are not a robot.</h3>
 
-        function generateImages() {
-            const uniqueImages = [...images];
-            const repeatedImage = uniqueImages[Math.floor(Math.random() * uniqueImages.length)];
-            shuffledImages = [...uniqueImages, repeatedImage].sort(() => Math.random() - 0.5);
-            
-            const container = document.getElementById("image-container");
-            container.innerHTML = "";
-            shuffledImages.forEach((imgClass, index) => {
-                const imgDiv = document.createElement("div");
-                imgDiv.className = `tile ${imgClass}`;
-                imgDiv.setAttribute("data-img", imgClass);
-                imgDiv.onclick = () => selectImage(imgClass, imgDiv);
-                container.appendChild(imgDiv);
-            });
+ <div id="images-container">
+  <img class="img1" src="https://source.unsplash.com/random/1" alt="image 1">
+  <img class="img2" src="https://source.unsplash.com/random/2" alt="image 2">
+  <img class="img3" src="https://source.unsplash.com/random/3" alt="image 3">
+  <img class="img4" src="https://source.unsplash.com/random/4" alt="image 4">
+  <img class="img5" src="https://source.unsplash.com/random/5" alt="image 5">
+  <img class="img1" src="https://source.unsplash.com/random/1" alt="image 1"> <!-- Duplicate image -->
+</div>
+
+
+  <button id="reset">Reset</button>
+  <button id="verify">Verify</button>
+
+  <p id="para"></p>
+
+  <script>
+    // Array to store the clicked images
+    let clickedImages = [];
+    let identicalImage = null;
+
+    // Randomize the images
+    function randomizeImages() {
+      const container = document.getElementById('images-container');
+      const images = Array.from(container.children);
+      // Shuffle the images randomly
+      for (let i = images.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [images[i], images[j]] = [images[j], images[i]];
+      }
+      container.innerHTML = ''; // Clear current images
+      images.forEach(img => container.appendChild(img)); // Append shuffled images
+    }
+
+    // Reset state
+    function resetState() {
+      clickedImages = [];
+      document.getElementById('para').innerHTML = '';
+      document.getElementById('verify').style.display = 'none';
+      document.getElementById('reset').style.display = 'none';
+      document.getElementById('h').style.display = 'block';
+      const images = document.querySelectorAll('img');
+      images.forEach(img => img.style.opacity = '1'); // Reset opacity of images
+    }
+
+    // Handle image click
+    function handleImageClick(event) {
+      if (clickedImages.length < 2 && !clickedImages.includes(event.target)) {
+        clickedImages.push(event.target);
+        event.target.style.opacity = '0.5'; // Mark selected image
+
+        // Show the Reset button after a click
+        document.getElementById('reset').style.display = 'inline-block';
+
+        // When two images are clicked, show the Verify button
+        if (clickedImages.length === 2) {
+          document.getElementById('verify').style.display = 'inline-block';
         }
+      }
+    }
 
-        function selectImage(imgClass, imgDiv) {
-            if (selected.includes(imgClass) || selected.length >= 2) return;
-            selected.push(imgClass);
-            imgDiv.classList.add("selected");
-            document.getElementById("reset").style.display = "block";
-            if (selected.length === 2) {
-                document.getElementById("verify").style.display = "block";
-            }
-        }
+    // Handle Verify button click
+    function handleVerify() {
+      const [firstImage, secondImage] = clickedImages;
+      
+      // Check if the selected images are identical
+      if (firstImage.src === secondImage.src) {
+        document.getElementById('para').innerHTML = 'You are a human. Congratulations!';
+      } else {
+        document.getElementById('para').innerHTML = 'We can\'t verify you as a human. You selected the non-identical tiles.';
+      }
 
-        function verifySelection() {
-            const message = selected[0] === selected[1] 
-                ? "You are a human. Congratulations!" 
-                : "We can't verify you as a human. You selected the non-identical tiles.";
-            document.getElementById("para").innerText = message;
-            document.getElementById("verify").style.display = "none";
-        }
+      // Hide the Verify button after clicking
+      document.getElementById('verify').style.display = 'none';
+      // Show the reset message
+      document.getElementById('h').style.display = 'none';
+    }
 
-        function resetCaptcha() {
-            selected = [];
-            document.getElementById("para").innerText = "";
-            document.getElementById("reset").style.display = "none";
-            document.getElementById("verify").style.display = "none";
-            generateImages();
-        }
+    // Handle Reset button click
+    function handleReset() {
+      resetState();
+      randomizeImages(); // Re-randomize images after reset
+    }
 
-        window.onload = generateImages;
-    </script>
+    // Initialize the app
+    function initialize() {
+      randomizeImages();
+      const images = document.querySelectorAll('img');
+      images.forEach(img => img.addEventListener('click', handleImageClick));
+
+      document.getElementById('verify').addEventListener('click', handleVerify);
+      document.getElementById('reset').addEventListener('click', handleReset);
+    }
+
+    // Initialize the page on load
+    window.onload = initialize;
+  </script>
 </body>
 </html>
