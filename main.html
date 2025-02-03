@@ -6,13 +6,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>I'm not a robot</title>
     <link rel="stylesheet" href="styles.css" />
+	  <style>
+		  .img1 {
+  content: url("https://picsum.photos/id/237/200/300");
+}
+
+.img2 {
+  content: url("https://picsum.photos/seed/picsum/200/300");
+}
+
+.img3 {
+  content: url("https://picsum.photos/200/300?grayscale");
+}
+.img4 {
+  content: url("https://picsum.photos/200/300/");
+}
+.img5 {
+  content: url("https://picsum.photos/200/300.jpg");
+}
+
+img {
+  margin: 10px;
+  border: 5px solid #555;
+  width: 10%;
+}
+
+.flex {
+  display: flex;
+  justify-content: center;
+}
+
+.selected {
+  border: 5px solid rgb(0, 195, 255);
+}
+
+p {
+  text-align: center;
+}
+
+button {
+  margin: 20px;
+}
+
+	  </style>
   </head>
   <body>
     <main>
-      <!-- solution start -->
-      
-      <!-- solution end -->
+       <h3 id="h">Please click on the identical tiles to verify that you are not a robot.</h3>
+        <div id="image-container" class="flex"></div>
+        <p id="para" style="display: none;"></p>
+        <button id="reset" style="display: none;">Reset</button>
+        <button id="verify" style="display: none;">Verify</button>
     </main>
-    <script src="./script.js"></script>
+    <script src="./script.js">
+		
+   const images = [
+    'img1',
+    'img2',
+    'img3',
+    'img4',
+    'img5'
+   ];
+
+   function generateImages(){
+    var selectedImageIndex = Math.floor(Math.random()*images.length); //1 , 4,2,3, 0,5
+    var selectedImage = images[selectedImageIndex];
+    var allImages = images.concat(selectedImage);
+    var shuffledImages = allImages.sort(function(){
+        return 0.5 - Math.random();
+    });
+
+    
+    var imageContainer = document.getElementById('image-container');
+    imageContainer.innerHTML = '';
+    for(var index = 0; index < shuffledImages.length; index++){
+        var imgClass = shuffledImages[index];
+        var img = document.createElement('img');
+        img.className = imgClass;
+        img.dataset.index = index;
+        img.addEventListener('click', handleImageClick);
+        imageContainer.appendChild(img);
+    }
+   }
+
+   let firstClick = null;
+   let secondClick = null;
+
+   function handleImageClick(event){
+    const clickedImage = event.target;
+    if(firstClick == clickedImage || secondClick == clickedImage ) return;
+
+    document.getElementById('reset').style.display = 'block';
+
+    if(!firstClick) {
+        firstClick = clickedImage;
+        clickedImage.classList.add('selected');
+    }else if(!secondClick){
+        secondClick = clickedImage;
+        clickedImage.classList.add('selected');
+        document.getElementById('verify').style.display = 'block';
+    }
+
+    
+   }
+
+   function reset(){
+    firstClick = null;
+    secondClick = null;
+    document.getElementById('reset').style.display = 'none';
+    document.getElementById('verify').style.display = 'none';
+    document.getElementById('para').style.display = 'none';
+    document.getElementById('image-container').innerHTML = '';
+    generateImages();
+   }
+
+   function verify(){
+    if(firstClick && secondClick){
+        if(firstClick.src === secondClick.src){
+            document.getElementById('para').innerHTML = 'Verified';
+
+        }else{
+            document.getElementById('para').innerHTML = 'Not a human';
+        }
+
+        document.getElementById('para').style.display = 'block';
+        document.getElementById('verify').style.display = 'none';
+    }
+   }
+   document.getElementById('reset').addEventListener('click', reset);
+   document.getElementById('verify').addEventListener('click', verify);
+
+   generateImages();
+	</script>
   </body>
 </html>
